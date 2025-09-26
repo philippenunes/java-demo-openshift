@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: my-java-app
-          image: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app:latest
+          image: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app:dev
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
