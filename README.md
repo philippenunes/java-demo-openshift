@@ -44,12 +44,22 @@ netsh advfirewall firewall add rule name="CRC API Server" dir=in action=allow pr
 ipconfig | Select-String "IPv4"
 ```
 
-### 3. Aplicar GitOps
+### 3. Configurar secrets e aplicar GitOps
 ```bash
 # Criar namespace no CRC
 oc create namespace philippenunes-dev
 
-# Aplicar secrets e applications
+# IMPORTANTE: Criar secret com token real (não commitado)
+# 1. Copiar template
+cp k8s/crc-cluster-secret.template.yml k8s/crc-cluster-secret.yml
+
+# 2. Obter token CRC atual
+$TOKEN = oc whoami -t
+
+# 3. Substituir no arquivo crc-cluster-secret.yml:
+#    SUBSTITUIR_PELO_TOKEN_REAL -> valor do $TOKEN
+
+# 4. Aplicar secrets e applications
 wsl -- kubectl apply -f k8s/crc-cluster-secret.yml
 wsl -- kubectl apply -f k8s/application-build.yml  
 wsl -- kubectl apply -f k8s/application-dev.yml
@@ -82,3 +92,19 @@ my-java-app-dev     Synced        Healthy
 3. **Build** → Cria imagem no registry OpenShift
 4. **Deploy** → Atualiza pods com nova imagem
 5. **Route** → Aplicação disponível via URL
+
+## 🔐 Segurança
+
+### Arquivos sensíveis (NÃO commitados):
+- `k8s/crc-cluster-secret.yml` - Contém bearer token
+- Use sempre o template: `k8s/crc-cluster-secret.template.yml`
+
+### Para renovar token:
+```bash
+# Obter novo token CRC
+oc whoami -t
+
+# Atualizar secret no ArgoCD
+wsl -- kubectl delete secret crc-cluster-secret -n argocd
+wsl -- kubectl apply -f k8s/crc-cluster-secret.yml
+```

@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Secrets (nunca commitados) ###
+k8s/*secret*.yml
+k8s/*secret*.yaml
+**/secrets/
