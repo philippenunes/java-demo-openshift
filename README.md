@@ -44,22 +44,12 @@ netsh advfirewall firewall add rule name="CRC API Server" dir=in action=allow pr
 ipconfig | Select-String "IPv4"
 ```
 
-### 3. Configurar secrets e aplicar GitOps
+### 3. Aplicar GitOps
 ```bash
 # Criar namespace no CRC
 oc create namespace philippenunes-dev
 
-# IMPORTANTE: Criar secret com token real (não commitado)
-# 1. Copiar template
-cp k8s/crc-cluster-secret.template.yml k8s/crc-cluster-secret.yml
-
-# 2. Obter token CRC atual
-$TOKEN = oc whoami -t
-
-# 3. Substituir no arquivo crc-cluster-secret.yml:
-#    SUBSTITUIR_PELO_TOKEN_REAL -> valor do $TOKEN
-
-# 4. Aplicar secrets e applications
+# Aplicar secrets e applications
 wsl -- kubectl apply -f k8s/crc-cluster-secret.yml
 wsl -- kubectl apply -f k8s/application-build.yml  
 wsl -- kubectl apply -f k8s/application-dev.yml
