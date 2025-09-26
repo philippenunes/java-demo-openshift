@@ -1,0 +1,38 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: my-java-app-dev
+  namespace: philippenunes-dev
+  labels:
+    app: my-java-app
+    env: dev
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/philippenunes/java-demo-openshift
+      ref: main
+    contextDir: .
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: java:openjdk-17-ubi8
+      incremental: true
+  output:
+    to:
+      kind: ImageStreamTag
+      name: my-java-app:dev
+  triggers:
+    - type: GitHub
+      github:
+        secret: my-java-app-dev-github-webhook
+    - type: Generic
+      generic:
+        secret: my-java-app-dev-generic-webhook
+    - type: ImageChange
+      imageChange: {}
+    - type: ConfigChange
+  runPolicy: Serial
