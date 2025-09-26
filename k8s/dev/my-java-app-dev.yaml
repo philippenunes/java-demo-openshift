@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-java-app-prod
+  namespace: philippenunes-dev
+  labels:
+    app: my-java-app-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-java-app-prod
+  template:
+    metadata:
+      labels:
+        app: my-java-app-prod
+    spec:
+      containers:
+        - name: my-java-app
+          image: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app:latest
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-java-app-prod
+  namespace: philippenunes-dev
+spec:
+  selector:
+    app: my-java-app-prod
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: my-java-app-prod
+  namespace: philippenunes-dev
+spec:
+  to:
+    kind: Service
+    name: my-java-app-prod
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
