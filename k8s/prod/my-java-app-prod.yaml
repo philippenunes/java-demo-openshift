@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-java-app-dev
+  name: my-java-app-prod
   namespace: philippenunes-dev
   labels:
-    app: my-java-app-dev
+    app: my-java-app-prod
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: my-java-app-dev
+      app: my-java-app-prod
   template:
     metadata:
       labels:
-        app: my-java-app-dev
+        app: my-java-app-prod
     spec:
       containers:
         - name: my-java-app
@@ -25,11 +25,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-java-app-dev
+  name: my-java-app-prod
   namespace: philippenunes-dev
 spec:
   selector:
-    app: my-java-app-dev
+    app: my-java-app-prod
   ports:
     - protocol: TCP
       port: 8080
@@ -38,12 +38,12 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: my-java-app-dev
+  name: my-java-app-prod
   namespace: philippenunes-dev
 spec:
   to:
     kind: Service
-    name: my-java-app-dev
+    name: my-java-app-prod
   port:
     targetPort: 8080
   tls:
