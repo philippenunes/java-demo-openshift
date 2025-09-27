@@ -3,13 +3,18 @@ kind: Application
 metadata:
   name: my-java-app-dev
   namespace: argocd
+  # 🔧 Anotações para ArgoCD Image Updater
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: my-java-app=image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: main
 spec:
   project: default
 
   source:
     repoURL: 'https://github.com/philippenunes/java-demo-openshift'
     targetRevision: main  
-    path: k8s/dev
+    path: k8s/overlays/dev  # 🎯 Agora aponta para overlay Kustomize
 
   destination:
     server: 'https://192.168.1.3:6443'
