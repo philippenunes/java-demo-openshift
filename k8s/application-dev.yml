@@ -14,7 +14,7 @@ spec:
   source:
     repoURL: 'https://github.com/philippenunes/java-demo-openshift'
     targetRevision: main  
-    path: k8s/overlays/dev  # 🎯 Agora aponta para overlay Kustomize
+    path: k8s/dev
 
   destination:
     server: 'https://192.168.1.3:6443'
