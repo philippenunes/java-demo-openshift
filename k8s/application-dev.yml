@@ -23,10 +23,10 @@ spec:
     - kube-controller-manager
 
   syncPolicy:
-    # Pausando AutoSync temporariamente para estabilizar
-    # automated:
-    #   prune: true
-    #   selfHeal: true
+    # ✅ AutoSync habilitado para desenvolvimento
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
     - CreateNamespace=false
     - PrunePropagationPolicy=foreground
