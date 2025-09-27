@@ -8,8 +8,9 @@ resources:
 - route.yaml
 
 # Configurações comuns a todos os ambientes
-commonLabels:
-  app: my-java-app
+labels:
+- pairs:
+    app: my-java-app
   
 # Metadados que serão aplicados a todos os recursos
 commonAnnotations:
