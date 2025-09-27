@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 class Home {
     @GetMapping("/")
     public String hello() {
-        return "Hello from Dev!";
+        return "Hello from GitOps! ArgoCD + OpenShift working! 🚀";
     }
 }
