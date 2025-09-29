@@ -61,14 +61,14 @@ jobs:
       run: |
         echo "✅ Verifying self-hosted environment..."
         oc version --client
-        oc whoami --show-server || echo "⚠️ Not logged into OpenShift"
+        try { oc whoami --show-server } catch { echo "⚠️ Not logged into OpenShift" }
       
     - name: 🔐 OpenShift Login Check
       run: |
         echo "🔐 Checking OpenShift connection..."
-        echo "Current user: $(oc whoami)"
-        echo "Current server: $(oc whoami --show-server)"
-        echo "Current namespace: $(oc project -q)"
+        try { echo "Current user: $(oc whoami)" } catch { echo "User: Not logged in" }
+        try { echo "Current server: $(oc whoami --show-server)" } catch { echo "Server: Not connected" }
+        try { echo "Current namespace: $(oc project -q)" } catch { echo "Namespace: Not set" }
         
     - name: 🏗️ Trigger Build
       run: |
@@ -77,10 +77,10 @@ jobs:
         echo "Namespace: ${{ env.NAMESPACE }}"
         
         # Verificar se o namespace existe
-        oc get namespace ${{ env.NAMESPACE }} || echo "⚠️ Namespace may not exist"
+        try { oc get namespace ${{ env.NAMESPACE }} } catch { echo "⚠️ Namespace may not exist" }
         
         # Verificar se o BuildConfig existe
-        oc get buildconfig ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} || echo "⚠️ BuildConfig may not exist"
+        try { oc get buildconfig ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} } catch { echo "⚠️ BuildConfig may not exist" }
         
         # Iniciar o build
         oc start-build ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} --follow --wait
@@ -89,9 +89,10 @@ jobs:
       id: image
       run: |
         echo "📦 Getting latest image digest..."
-        BUILD_NUMBER=$(oc get builds -n ${{ env.NAMESPACE }} --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}' | grep ${{ env.PROJECT_NAME }})
+        $BUILD_NUMBER = oc get builds -n ${{ env.NAMESPACE }} --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}'
+        $BUILD_NUMBER = $BUILD_NUMBER | Select-String ${{ env.PROJECT_NAME }}
         echo "Latest build: $BUILD_NUMBER"
-        echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+        echo "build_number=$BUILD_NUMBER" >> $env:GITHUB_OUTPUT
         
     - name: ✅ Build Success Notification
       run: |
