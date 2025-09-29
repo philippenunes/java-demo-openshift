@@ -44,7 +44,7 @@ jobs:
         
     - name: 📊 Test Report
       if: success() || failure()
-      shell: pwsh
+      shell: powershell
       run: |
         Write-Host "📊 Test Results Summary:"
         $testFiles = Get-ChildItem -Path "target/surefire-reports" -Filter "TEST-*.xml" -ErrorAction SilentlyContinue
