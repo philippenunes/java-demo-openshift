@@ -1,36 +1,28 @@
+# 🎯 APLICAÇÃO ARGOCD SIMPLES PARA TESTE GITOPS
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: my-java-app-dev
-  namespace: openshift-gitops  # ← ArgoCD do OpenShift
-  # 🎯 CONFIGURAÇÃO PARA ARGOCD IMAGE UPDATER NATIVO
+  namespace: openshift-gitops
   annotations:
-    argocd-image-updater.argoproj.io/image-list: my-java-app=image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
+    # 🤖 CONFIGURAÇÕES PARA ARGOCD IMAGE UPDATER
+    argocd-image-updater.argoproj.io/image-list: my-java-app=image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app:dev
     argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/git-branch: main
     argocd-image-updater.argoproj.io/my-java-app.update-strategy: digest
 spec:
   project: default
-
+  
   source:
     repoURL: 'https://github.com/philippenunes/java-demo-openshift'
     targetRevision: main  
-    path: k8s/overlays/dev  # 🎯 Estrutura Kustomize
-    kustomize: {}
-
+    path: k8s/overlays/dev
+    
   destination:
-    server: 'https://kubernetes.default.svc'  # ← Mesmo cluster
+    server: 'https://kubernetes.default.svc'
     namespace: philippenunes-dev
-
-  # Configuração para evitar problemas de discovery
-  ignoreDifferences:
-  - group: "*"
-    kind: "*"
-    managedFieldsManagers:
-    - kube-controller-manager
-
+    
   syncPolicy:
-    # ✅ AutoSync habilitado para desenvolvimento
     automated:
       prune: true
       selfHeal: true
