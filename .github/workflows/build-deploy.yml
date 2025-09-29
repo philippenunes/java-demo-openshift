@@ -14,7 +14,6 @@ on:
     branches: [ main ]
 
 env:
-  # 🎯 Configurações do projeto
   JAVA_VERSION: '17'
   MAVEN_OPTS: '-Xmx1024m'
   PROJECT_NAME: 'my-java-app'
@@ -37,16 +36,19 @@ jobs:
         cache: maven
 
     - name: 🧪 Run Tests
+      shell: powershell
       run: |
-        echo "🧪 Running unit tests..."
+        Write-Host "🧪 Running unit tests..."
         mvn test
-        echo "✅ Tests completed successfully!"
+        Write-Host "✅ Tests completed successfully!"
 
     - name: ✅ Code Coverage
+      shell: powershell
       run: |
-        echo "📊 Generating coverage report..."
-        mvn jacoco:report || echo "📝 Coverage plugin not configured"
-        
+        Write-Host "📊 Generating coverage report..."
+        mvn jacoco:report -ErrorAction SilentlyContinue
+        if ($LASTEXITCODE -ne 0) { Write-Host "📝 Coverage plugin not configured" }
+
   # 🏗️ BUILD NO OPENSHIFT (apenas no main)
   build:
     name: 🏗️ OpenShift Build
@@ -58,62 +60,54 @@ jobs:
       uses: actions/checkout@v4
         
     - name: ✅ Verify Environment
-      shell: pwsh
+      shell: powershell
       run: |
         Write-Host "✅ Verifying self-hosted environment..."
+        if (-not (Get-Command oc -ErrorAction SilentlyContinue)) {
+          Write-Host "❌ OpenShift CLI not found - skipping OpenShift operations"
+          exit 0
+        }
         oc version --client
         try { oc whoami --show-server } catch { Write-Host "⚠️ Not logged into OpenShift" }
       
     - name: 🔐 OpenShift Login Check
-      shell: pwsh
+      shell: powershell
       run: |
         Write-Host "🔐 Checking OpenShift connection..."
         try {
-          oc version --client
-          Write-Host "✅ OpenShift CLI found"
-        } catch {
-          Write-Host "❌ OpenShift CLI not found - skipping OpenShift operations"
-          exit 0
-        }
-        
-        try {
           $user = oc whoami 2>$null
-          if ($user) {
-            Write-Host "✅ Logged in as: $user"
-          } else {
-            Write-Host "⚠️ Not logged into OpenShift"
-          }
-        } catch {
-          Write-Host "⚠️ Not logged into OpenShift"
-        }
-        
+          if ($user) { Write-Host "✅ Logged in as: $user" }
+          else { Write-Host "⚠️ Not logged into OpenShift" }
+        } catch { Write-Host "⚠️ Not logged into OpenShift" }
+
     - name: 🏗️ Trigger Build
-      shell: pwsh
+      shell: powershell
       run: |
         Write-Host "🏗️ Starting OpenShift build..."
-        Write-Host "Project: '${{ env.PROJECT_NAME }}'"
-        Write-Host "Namespace: '${{ env.NAMESPACE }}'"
-        
-        try { oc get namespace '${{ env.NAMESPACE }}' } catch { Write-Host "⚠️ Namespace may not exist" }
-        try { oc get buildconfig '${{ env.PROJECT_NAME }}' -n '${{ env.NAMESPACE }}' } catch { Write-Host "⚠️ BuildConfig may not exist" }
-        
-        oc start-build '${{ env.PROJECT_NAME }}' -n '${{ env.NAMESPACE }}' --follow --wait
-        
+        Write-Host "Project: $env:PROJECT_NAME"
+        Write-Host "Namespace: $env:NAMESPACE"
+
+        try { oc get namespace $env:NAMESPACE } catch { Write-Host "⚠️ Namespace may not exist" }
+        try { oc get buildconfig $env:PROJECT_NAME -n $env:NAMESPACE } catch { Write-Host "⚠️ BuildConfig may not exist" }
+
+        oc start-build $env:PROJECT_NAME -n $env:NAMESPACE --follow --wait
+
     - name: 📦 Get Latest Image
       id: image
-      shell: pwsh
+      shell: powershell
       run: |
         Write-Host "📦 Getting latest image digest..."
-        $BUILD_NUMBER = oc get builds -n '${{ env.NAMESPACE }}' --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}'
-        $BUILD_NUMBER = $BUILD_NUMBER | Select-String '${{ env.PROJECT_NAME }}'
-        Write-Host "Latest build: $BUILD_NUMBER"
-        "build_number=$BUILD_NUMBER" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        
+        $builds = oc get builds -n $env:NAMESPACE --sort-by=.metadata.creationTimestamp -o json
+        $latestBuild = ($builds | ConvertFrom-Json).items[-1].metadata.name
+        Write-Host "Latest build: $latestBuild"
+        echo "build_number=$latestBuild" >> $env:GITHUB_OUTPUT
+
     - name: ✅ Build Success Notification
+      shell: powershell
       run: |
-        echo "✅ Build completed successfully!"
-        echo "🏗️ Build: ${{ steps.image.outputs.build_number }}"
-        echo "🎯 Next: ArgoCD Image Updater will detect and deploy automatically"
+        Write-Host "✅ Build completed successfully!"
+        Write-Host "🏗️ Build: $($env:build_number)"
+        Write-Host "🎯 Next: ArgoCD Image Updater will detect and deploy automatically"
 
   # 📊 DEPLOYMENT STATUS
   status:
@@ -123,15 +117,16 @@ jobs:
     if: always()
     steps:
     - name: 📊 Pipeline Summary
+      shell: powershell
       run: |
-        echo "## 🚀 Pipeline Summary" >> $GITHUB_STEP_SUMMARY
-        echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
-        echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-        echo "| 🧪 Tests | ${{ needs.test.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🏗️ Build | ${{ needs.build.result == 'success' && '✅ Completed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🎯 GitOps | 🔄 ArgoCD Image Updater will handle deployment |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🔄 Next Steps:" >> $GITHUB_STEP_SUMMARY
-        echo "1. ✅ ArgoCD Image Updater detects new image" >> $GITHUB_STEP_SUMMARY
-        echo "2. ✅ Automatic Git commit with new image digest" >> $GITHUB_STEP_SUMMARY
-        echo "3. ✅ ArgoCD deploys automatically" >> $GITHUB_STEP_SUMMARY
+        "## 🚀 Pipeline Summary" >> $env:GITHUB_STEP_SUMMARY
+        "| Stage | Status |" >> $env:GITHUB_STEP_SUMMARY
+        "|-------|--------|" >> $env:GITHUB_STEP_SUMMARY
+        "| 🧪 Tests | $(( ${{ needs.test.result }} -eq 'success') ? '✅ Passed' : '❌ Failed') |" >> $env:GITHUB_STEP_SUMMARY
+        "| 🏗️ Build | $(( ${{ needs.build.result }} -eq 'success') ? '✅ Completed' : '❌ Failed') |" >> $env:GITHUB_STEP_SUMMARY
+        "| 🎯 GitOps | 🔄 ArgoCD Image Updater will handle deployment |" >> $env:GITHUB_STEP_SUMMARY
+        "" >> $env:GITHUB_STEP_SUMMARY
+        "### 🔄 Next Steps:" >> $env:GITHUB_STEP_SUMMARY
+        "1. ✅ ArgoCD Image Updater detects new image" >> $env:GITHUB_STEP_SUMMARY
+        "2. ✅ Automatic Git commit with new image digest" >> $env:GITHUB_STEP_SUMMARY
+        "3. ✅ ArgoCD deploys automatically" >> $env:GITHUB_STEP_SUMMARY
