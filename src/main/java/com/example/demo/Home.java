@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 class Home {
     @GetMapping("/")
     public String home() {
-        return "🚀 GitHub Actions + GitOps: PIPELINE TESTANDO! ✨";
+        return "🚀 Java 17 + OpenShift CRC: FUNCIONANDO! ✨";
     }
 }
