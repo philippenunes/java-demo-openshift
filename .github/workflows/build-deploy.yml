@@ -44,13 +44,15 @@ jobs:
         
     - name: 📊 Test Report
       if: success() || failure()
+      shell: pwsh
       run: |
-        echo "📊 Test Results Summary:"
-        if (Test-Path "target/surefire-reports/TEST-*.xml") {
-          echo "✅ Test reports generated successfully"
-          Get-ChildItem "target/surefire-reports" -Filter "*.xml" | ForEach-Object { $_.Name }
+        Write-Host "📊 Test Results Summary:"
+        $testFiles = Get-ChildItem -Path "target/surefire-reports" -Filter "TEST-*.xml" -ErrorAction SilentlyContinue
+        if ($testFiles) {
+          Write-Host "✅ Test reports generated successfully"
+          $testFiles | ForEach-Object { Write-Host "  - $($_.Name)" }
         } else {
-          echo "📝 No test reports found, but tests may have run successfully"
+          Write-Host "📝 No test reports found, but tests may have run successfully"
         }
 
     - name: ✅ Code Coverage
