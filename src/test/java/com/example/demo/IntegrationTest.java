@@ -42,6 +42,6 @@ class IntegrationTest {
         ResponseEntity<String> response = restTemplate.getForEntity(
                 "http://localhost:" + port + "/", String.class);
         
-        assertThat(response.getBody()).isEqualTo("🚀 GitHub Actions + GitOps: PIPELINE COMPLETO! ✨");
+        assertThat(response.getBody()).isEqualTo("🚀 GitHub Actions + GitOps: PIPELINE TESTANDO! ✨");
     }
 }

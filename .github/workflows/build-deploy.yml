@@ -44,25 +44,18 @@ jobs:
         
     - name: 📊 Test Report
       if: always()  # sempre roda, independente do sucesso/falha dos testes
-      shell: powershell
       run: |
-        Write-Host "📊 Test Results Summary:"
-
-        $reportDir = "target/surefire-reports"
-
-        if (Test-Path $reportDir) {
-            $testFiles = Get-ChildItem -Path $reportDir -Filter "TEST-*.xml" -ErrorAction SilentlyContinue
-
-            if ($testFiles.Count -gt 0) {
-                Write-Host "✅ Test reports generated successfully"
-                foreach ($file in $testFiles) {
-                    Write-Host "  - $($file.Name)"
-                }
-            } else {
-                Write-Host "📝 No test reports found, but tests may have run successfully"
-            }
+        echo "📊 Test Results Summary:"
+        if (Test-Path "target/surefire-reports") {
+          $testFiles = Get-ChildItem "target/surefire-reports" -Filter "TEST-*.xml" -ErrorAction SilentlyContinue
+          if ($testFiles.Count -gt 0) {
+            echo "✅ Test reports generated successfully"
+            foreach ($file in $testFiles) { echo "  - $($file.Name)" }
+          } else {
+            echo "📝 No test reports found, but tests may have run successfully"
+          }
         } else {
-            Write-Host "⚠️ Directory '$reportDir' not found"
+          echo "⚠️ Directory 'target/surefire-reports' not found"
         }
 
     - name: ✅ Code Coverage
