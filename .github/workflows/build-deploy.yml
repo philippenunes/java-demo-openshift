@@ -69,12 +69,15 @@ jobs:
       uses: actions/checkout@v4
       
     - name: 🔧 Install OpenShift CLI
+      uses: redhat-actions/openshift-tools-installer@v1
+      with:
+        oc: 'latest'
+        
+    - name: ✅ Verify CLI Installation
       run: |
-        echo "🔧 Installing OpenShift CLI..."
-        curl -LO https://github.com/openshift/okd/releases/download/4.13.0-0.okd-2023-09-16-012030/openshift-client-linux-4.13.0-0.okd-2023-09-16-012030.tar.gz
-        tar -xzf openshift-client-linux-4.13.0-0.okd-2023-09-16-012030.tar.gz
-        sudo mv oc kubectl /usr/local/bin/
+        echo "✅ Verifying OpenShift CLI installation..."
         oc version --client
+        kubectl version --client
       
     - name: 🔐 OpenShift Login
       run: |
