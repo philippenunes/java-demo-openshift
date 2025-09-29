@@ -1,12 +1,5 @@
-# 🚀 GITHUB ACTIONS - PIPELINE CI/CD COMPLET    - name: ✅ Code Coverage
-      shell: powershell
-      run: |
-        Write-Host "\ud83d\udcca Generating coverage report..."
-        try {
-          mvn jacoco:report
-        } catch {
-          Write-Host "\ud83d\udccf Coverage plugin not configured"
-        }ste workflow executa testes, build e deploy automático via GitOps
+# 🚀 GITHUB ACTIONS - PIPELINE CI/CD COMPLETO
+# Este workflow executa testes, build e deploy automático via GitOps
 
 name: 🏗️ Build and Deploy
 
@@ -21,6 +14,7 @@ on:
     branches: [ main ]
 
 env:
+  # 🎯 Configurações do projeto
   JAVA_VERSION: '17'
   MAVEN_OPTS: '-Xmx1024m'
   PROJECT_NAME: 'my-java-app'
@@ -43,19 +37,16 @@ jobs:
         cache: maven
 
     - name: 🧪 Run Tests
-      shell: powershell
       run: |
-        Write-Host "🧪 Running unit tests..."
+        echo "🧪 Running unit tests..."
         mvn test
-        Write-Host "✅ Tests completed successfully!"
+        echo "✅ Tests completed successfully!"
 
     - name: ✅ Code Coverage
-      shell: powershell
       run: |
-        Write-Host "📊 Generating coverage report..."
-        mvn jacoco:report -ErrorAction SilentlyContinue
-        if ($LASTEXITCODE -ne 0) { Write-Host "📝 Coverage plugin not configured" }
-
+        echo "📊 Generating coverage report..."
+        mvn jacoco:report || echo "📝 Coverage plugin not configured"
+        
   # 🏗️ BUILD NO OPENSHIFT (apenas no main)
   build:
     name: 🏗️ OpenShift Build
@@ -67,54 +58,59 @@ jobs:
       uses: actions/checkout@v4
         
     - name: ✅ Verify Environment
-      shell: powershell
       run: |
-        Write-Host "✅ Verifying self-hosted environment..."
-        if (-not (Get-Command oc -ErrorAction SilentlyContinue)) {
-          Write-Host "❌ OpenShift CLI not found - skipping OpenShift operations"
+        echo "✅ Verifying self-hosted environment..."
+        if command -v oc &> /dev/null; then
+          oc version --client
+          oc whoami --show-server || echo "⚠️ Not logged into OpenShift"
+        else
+          echo "❌ OpenShift CLI not found - skipping OpenShift operations"
           exit 0
-        }
-        oc version --client
-        try { oc whoami --show-server } catch { Write-Host "⚠️ Not logged into OpenShift" }
+        fi
       
     - name: 🔐 OpenShift Login Check
-      shell: powershell
       run: |
-        Write-Host "🔐 Checking OpenShift connection..."
-        try {
-          $user = oc whoami 2>$null
-          if ($user) { Write-Host "✅ Logged in as: $user" }
-          else { Write-Host "⚠️ Not logged into OpenShift" }
-        } catch { Write-Host "⚠️ Not logged into OpenShift" }
-
+        echo "🔐 Checking OpenShift connection..."
+        if command -v oc &> /dev/null; then
+          echo "✅ OpenShift CLI found"
+          user=$(oc whoami 2>/dev/null || echo "")
+          if [ -n "$user" ]; then
+            echo "✅ Logged in as: $user"
+          else
+            echo "⚠️ Not logged into OpenShift"
+          fi
+        else
+          echo "❌ OpenShift CLI not found"
+        fi
+        
     - name: 🏗️ Trigger Build
-      shell: powershell
       run: |
-        Write-Host "🏗️ Starting OpenShift build..."
-        Write-Host "Project: $env:PROJECT_NAME"
-        Write-Host "Namespace: $env:NAMESPACE"
-
-        try { oc get namespace $env:NAMESPACE } catch { Write-Host "⚠️ Namespace may not exist" }
-        try { oc get buildconfig $env:PROJECT_NAME -n $env:NAMESPACE } catch { Write-Host "⚠️ BuildConfig may not exist" }
-
-        oc start-build $env:PROJECT_NAME -n $env:NAMESPACE --follow --wait
-
+        echo "🏗️ Starting OpenShift build..."
+        echo "Project: ${{ env.PROJECT_NAME }}"
+        echo "Namespace: ${{ env.NAMESPACE }}"
+        
+        # Verificar se o namespace existe
+        oc get namespace ${{ env.NAMESPACE }} || echo "⚠️ Namespace may not exist"
+        
+        # Verificar se o BuildConfig existe
+        oc get buildconfig ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} || echo "⚠️ BuildConfig may not exist"
+        
+        # Iniciar o build
+        oc start-build ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} --follow --wait
+        
     - name: 📦 Get Latest Image
       id: image
-      shell: powershell
       run: |
-        Write-Host "📦 Getting latest image digest..."
-        $builds = oc get builds -n $env:NAMESPACE --sort-by=.metadata.creationTimestamp -o json
-        $latestBuild = ($builds | ConvertFrom-Json).items[-1].metadata.name
-        Write-Host "Latest build: $latestBuild"
-        echo "build_number=$latestBuild" >> $env:GITHUB_OUTPUT
-
+        echo "📦 Getting latest image digest..."
+        BUILD_NUMBER=$(oc get builds -n ${{ env.NAMESPACE }} --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}' | grep ${{ env.PROJECT_NAME }})
+        echo "Latest build: $BUILD_NUMBER"
+        echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+        
     - name: ✅ Build Success Notification
-      shell: powershell
       run: |
-        Write-Host "✅ Build completed successfully!"
-        Write-Host "🏗️ Build: $($env:build_number)"
-        Write-Host "🎯 Next: ArgoCD Image Updater will detect and deploy automatically"
+        echo "✅ Build completed successfully!"
+        echo "🏗️ Build: ${{ steps.image.outputs.build_number }}"
+        echo "🎯 Next: ArgoCD Image Updater will detect and deploy automatically"
 
   # 📊 DEPLOYMENT STATUS
   status:
@@ -124,20 +120,28 @@ jobs:
     if: always()
     steps:
     - name: 📊 Pipeline Summary
-      shell: powershell
       run: |
-        "## \ud83d\ude80 Pipeline Summary" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-        "| Stage | Status |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-        "|-------|--------|" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        echo "## 🚀 Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
         
-        $testStatus = if ('${{ needs.test.result }}' -eq 'success') { '\u2705 Passed' } else { '\u274c Failed' }
-        $buildStatus = if ('${{ needs.build.result }}' -eq 'success') { '\u2705 Completed' } else { '\u274c Failed' }
+        # Test result
+        if [ "${{ needs.test.result }}" = "success" ]; then
+          echo "| 🧪 Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| 🧪 Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+        fi
         
-        "| \ud83e\uddea Tests | $testStatus |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-        "| \ud83c\udfd7\ufe0f Build | $buildStatus |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-        "| \ud83c\udfaf GitOps | \ud83d\udd04 ArgoCD Image Updater will handle deployment |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-        "" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-        "### \ud83d\udd04 Next Steps:" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-        "1. \u2705 ArgoCD Image Updater detects new image" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-        "2. \u2705 Automatic Git commit with new image digest" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-        "3. \u2705 ArgoCD deploys automatically" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        # Build result
+        if [ "${{ needs.build.result }}" = "success" ]; then
+          echo "| 🏗️ Build | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| 🏗️ Build | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "| 🎯 GitOps | 🔄 ArgoCD Image Updater will handle deployment |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔄 Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. ✅ ArgoCD Image Updater detects new image" >> $GITHUB_STEP_SUMMARY
+        echo "2. ✅ Automatic Git commit with new image digest" >> $GITHUB_STEP_SUMMARY
+        echo "3. ✅ ArgoCD deploys automatically" >> $GITHUB_STEP_SUMMARY
