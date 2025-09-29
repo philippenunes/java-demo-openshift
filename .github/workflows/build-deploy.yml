@@ -138,14 +138,19 @@ jobs:
     - name: 📊 Pipeline Summary
       shell: pwsh
       run: |
-        "`n## 🚀 Pipeline Summary`" >> $env:GITHUB_STEP_SUMMARY
-        "`n| Stage | Status |`" >> $env:GITHUB_STEP_SUMMARY
-        "`n|-------|--------|`" >> $env:GITHUB_STEP_SUMMARY
-        "`n| 🧪 Tests | $(( '${{ needs.test.result }}' -eq 'success' ) ? '✅ Passed' : '❌ Failed' ) |`" >> $env:GITHUB_STEP_SUMMARY
-        "`n| 🏗️ Build | $(( '${{ needs.build.result }}' -eq 'success' ) ? '✅ Completed' : '❌ Failed' ) |`" >> $env:GITHUB_STEP_SUMMARY
-        "`n| 🎯 GitOps | 🔄 ArgoCD Image Updater will handle deployment |`" >> $env:GITHUB_STEP_SUMMARY
-        "`n`" >> $env:GITHUB_STEP_SUMMARY
-        "`n### 🔄 Next Steps:`" >> $env:GITHUB_STEP_SUMMARY
-        "`n1. ✅ ArgoCD Image Updater detects new image`" >> $env:GITHUB_STEP_SUMMARY
-        "`n2. ✅ Automatic Git commit with new image digest`" >> $env:GITHUB_STEP_SUMMARY
-        "`n3. ✅ ArgoCD deploys automatically`" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output "## 🚀 Pipeline Summary" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output "| Stage | Status |" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output "|-------|--------|" >> $env:GITHUB_STEP_SUMMARY
+        
+        $testStatus = if ('${{ needs.test.result }}' -eq 'success') { '✅ Passed' } else { '❌ Failed' }
+        Write-Output "| 🧪 Tests | $testStatus |" >> $env:GITHUB_STEP_SUMMARY
+        
+        $buildStatus = if ('${{ needs.build.result }}' -eq 'success') { '✅ Completed' } else { '❌ Failed' }
+        Write-Output "| 🏗️ Build | $buildStatus |" >> $env:GITHUB_STEP_SUMMARY
+        
+        Write-Output "| 🎯 GitOps | 🔄 ArgoCD Image Updater will handle deployment |" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output "" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output "### 🔄 Next Steps:" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output "1. ✅ ArgoCD Image Updater detects new image" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output "2. ✅ Automatic Git commit with new image digest" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output "3. ✅ ArgoCD deploys automatically" >> $env:GITHUB_STEP_SUMMARY
