@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 class Home {
     @GetMapping("/")
     public String home() {
-        return "🚀 GitHub Actions + GitOps: PIPELINE COMPLETO! ✨";
+        return "🚀 GitHub Actions + GitOps: PIPELINE TESTANDO! ✨";
     }
 }

@@ -43,16 +43,26 @@ jobs:
         echo "✅ Tests completed - checking results..."
         
     - name: 📊 Test Report
-      if: success() || failure()
+      if: always()  # sempre roda, independente do sucesso/falha dos testes
       shell: powershell
       run: |
         Write-Host "📊 Test Results Summary:"
-        $testFiles = Get-ChildItem -Path "target/surefire-reports" -Filter "TEST-*.xml" -ErrorAction SilentlyContinue
-        if ($testFiles) {
-          Write-Host "✅ Test reports generated successfully"
-          $testFiles | ForEach-Object { Write-Host "  - $($_.Name)" }
+
+        $reportDir = "target/surefire-reports"
+
+        if (Test-Path $reportDir) {
+            $testFiles = Get-ChildItem -Path $reportDir -Filter "TEST-*.xml" -ErrorAction SilentlyContinue
+
+            if ($testFiles.Count -gt 0) {
+                Write-Host "✅ Test reports generated successfully"
+                foreach ($file in $testFiles) {
+                    Write-Host "  - $($file.Name)"
+                }
+            } else {
+                Write-Host "📝 No test reports found, but tests may have run successfully"
+            }
         } else {
-          Write-Host "📝 No test reports found, but tests may have run successfully"
+            Write-Host "⚠️ Directory '$reportDir' not found"
         }
 
     - name: ✅ Code Coverage
