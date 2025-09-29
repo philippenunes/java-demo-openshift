@@ -1,5 +1,5 @@
 # 🚀 GITHUB ACTIONS - PIPELINE CI/CD COMPLETO
-# Este workflow executa testes, build e deploy automático via GitOps
+# Workflow de testes, build e deploy via GitOps no OpenShift
 
 name: 🏗️ Build and Deploy
 
@@ -14,7 +14,6 @@ on:
     branches: [ main ]
 
 env:
-  # 🎯 Configurações do projeto
   JAVA_VERSION: '17'
   MAVEN_OPTS: '-Xmx1024m'
   PROJECT_NAME: 'my-java-app'
@@ -37,17 +36,23 @@ jobs:
         cache: maven
 
     - name: 🧪 Run Tests
+      shell: pwsh
       run: |
-        echo "🧪 Running unit tests..."
+        Write-Host "🧪 Running unit tests..."
         mvn test
-        echo "✅ Tests completed successfully!"
+        Write-Host "✅ Tests completed successfully!"
 
     - name: ✅ Code Coverage
+      shell: pwsh
       run: |
-        echo "📊 Generating coverage report..."
-        mvn jacoco:report || echo "📝 Coverage plugin not configured"
-        
-  # 🏗️ BUILD NO OPENSHIFT (apenas no main)
+        Write-Host "📊 Generating coverage report..."
+        try {
+          mvn jacoco:report
+        } catch {
+          Write-Host "📝 Coverage plugin not configured"
+        }
+
+  # 🏗️ BUILD NO OPENSHIFT
   build:
     name: 🏗️ OpenShift Build
     runs-on: self-hosted
@@ -56,61 +61,72 @@ jobs:
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
-        
+
     - name: ✅ Verify Environment
+      shell: pwsh
       run: |
-        echo "✅ Verifying self-hosted environment..."
-        if command -v oc &> /dev/null; then
-          oc version --client
-          oc whoami --show-server || echo "⚠️ Not logged into OpenShift"
-        else
-          echo "❌ OpenShift CLI not found - skipping OpenShift operations"
+        Write-Host "✅ Verifying self-hosted environment..."
+        if (Get-Command oc -ErrorAction SilentlyContinue) {
+          Write-Host "✅ OpenShift CLI found"
+          try {
+            $server = oc whoami --show-server
+            Write-Host "✅ Connected to OpenShift server: $server"
+          } catch {
+            Write-Host "⚠️ Not logged into OpenShift"
+          }
+        } else {
+          Write-Host "❌ OpenShift CLI not found"
+        }
+
+    - name: 🔐 OpenShift Login
+      shell: pwsh
+      run: |
+        if (-not $env:OPENSHIFT_TOKEN -or -not $env:OPENSHIFT_SERVER) {
+          Write-Host "⚠️ OPENSHIFT_TOKEN or OPENSHIFT_SERVER not set. Skipping login."
           exit 0
-        fi
-      
-    - name: 🔐 OpenShift Login Check
-      run: |
-        echo "🔐 Checking OpenShift connection..."
-        if command -v oc &> /dev/null; then
-          echo "✅ OpenShift CLI found"
-          user=$(oc whoami 2>/dev/null || echo "")
-          if [ -n "$user" ]; then
-            echo "✅ Logged in as: $user"
-          else
-            echo "⚠️ Not logged into OpenShift"
-          fi
-        else
-          echo "❌ OpenShift CLI not found"
-        fi
-        
+        }
+        Write-Host "🔐 Logging into OpenShift..."
+        oc login --token=$env:OPENSHIFT_TOKEN --server=$env:OPENSHIFT_SERVER --insecure-skip-tls-verify
+        $user = oc whoami
+        Write-Host "✅ Logged in as $user"
+
     - name: 🏗️ Trigger Build
+      shell: pwsh
       run: |
-        echo "🏗️ Starting OpenShift build..."
-        echo "Project: ${{ env.PROJECT_NAME }}"
-        echo "Namespace: ${{ env.NAMESPACE }}"
-        
-        # Verificar se o namespace existe
-        oc get namespace ${{ env.NAMESPACE }} || echo "⚠️ Namespace may not exist"
-        
-        # Verificar se o BuildConfig existe
-        oc get buildconfig ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} || echo "⚠️ BuildConfig may not exist"
-        
-        # Iniciar o build
-        oc start-build ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} --follow --wait
-        
+        Write-Host "🏗️ Starting OpenShift build..."
+        Write-Host "Project: $env:PROJECT_NAME"
+        Write-Host "Namespace: $env:NAMESPACE"
+
+        try {
+          oc get namespace $env:NAMESPACE | Out-Null
+        } catch {
+          Write-Host "⚠️ Namespace $env:NAMESPACE may not exist"
+        }
+
+        try {
+          oc get buildconfig $env:PROJECT_NAME -n $env:NAMESPACE | Out-Null
+        } catch {
+          Write-Host "⚠️ BuildConfig $env:PROJECT_NAME may not exist"
+        }
+
+        oc start-build $env:PROJECT_NAME -n $env:NAMESPACE --follow --wait
+
     - name: 📦 Get Latest Image
       id: image
+      shell: pwsh
       run: |
-        echo "📦 Getting latest image digest..."
-        BUILD_NUMBER=$(oc get builds -n ${{ env.NAMESPACE }} --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}' | grep ${{ env.PROJECT_NAME }})
-        echo "Latest build: $BUILD_NUMBER"
-        echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
-        
+        Write-Host "📦 Getting latest build digest..."
+        $build = oc get builds -n $env:NAMESPACE --sort-by=.metadata.creationTimestamp -o json | ConvertFrom-Json
+        $latestBuild = $build.items[-1].metadata.name
+        Write-Host "Latest build: $latestBuild"
+        "build_number=$latestBuild" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
     - name: ✅ Build Success Notification
+      shell: pwsh
       run: |
-        echo "✅ Build completed successfully!"
-        echo "🏗️ Build: ${{ steps.image.outputs.build_number }}"
-        echo "🎯 Next: ArgoCD Image Updater will detect and deploy automatically"
+        Write-Host "✅ Build completed successfully!"
+        Write-Host "🏗️ Build: $($env:GITHUB_OUTPUT)"
+        Write-Host "🎯 Next: ArgoCD Image Updater will detect and deploy automatically"
 
   # 📊 DEPLOYMENT STATUS
   status:
@@ -120,28 +136,16 @@ jobs:
     if: always()
     steps:
     - name: 📊 Pipeline Summary
+      shell: pwsh
       run: |
-        echo "## 🚀 Pipeline Summary" >> $GITHUB_STEP_SUMMARY
-        echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
-        echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-        
-        # Test result
-        if [ "${{ needs.test.result }}" = "success" ]; then
-          echo "| 🧪 Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "| 🧪 Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        # Build result
-        if [ "${{ needs.build.result }}" = "success" ]; then
-          echo "| 🏗️ Build | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "| 🏗️ Build | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        echo "| 🎯 GitOps | 🔄 ArgoCD Image Updater will handle deployment |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🔄 Next Steps:" >> $GITHUB_STEP_SUMMARY
-        echo "1. ✅ ArgoCD Image Updater detects new image" >> $GITHUB_STEP_SUMMARY
-        echo "2. ✅ Automatic Git commit with new image digest" >> $GITHUB_STEP_SUMMARY
-        echo "3. ✅ ArgoCD deploys automatically" >> $GITHUB_STEP_SUMMARY
+        "`n## 🚀 Pipeline Summary`" >> $env:GITHUB_STEP_SUMMARY
+        "`n| Stage | Status |`" >> $env:GITHUB_STEP_SUMMARY
+        "`n|-------|--------|`" >> $env:GITHUB_STEP_SUMMARY
+        "`n| 🧪 Tests | $(( '${{ needs.test.result }}' -eq 'success' ) ? '✅ Passed' : '❌ Failed' ) |`" >> $env:GITHUB_STEP_SUMMARY
+        "`n| 🏗️ Build | $(( '${{ needs.build.result }}' -eq 'success' ) ? '✅ Completed' : '❌ Failed' ) |`" >> $env:GITHUB_STEP_SUMMARY
+        "`n| 🎯 GitOps | 🔄 ArgoCD Image Updater will handle deployment |`" >> $env:GITHUB_STEP_SUMMARY
+        "`n`" >> $env:GITHUB_STEP_SUMMARY
+        "`n### 🔄 Next Steps:`" >> $env:GITHUB_STEP_SUMMARY
+        "`n1. ✅ ArgoCD Image Updater detects new image`" >> $env:GITHUB_STEP_SUMMARY
+        "`n2. ✅ Automatic Git commit with new image digest`" >> $env:GITHUB_STEP_SUMMARY
+        "`n3. ✅ ArgoCD deploys automatically`" >> $env:GITHUB_STEP_SUMMARY
