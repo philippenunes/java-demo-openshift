@@ -58,57 +58,56 @@ jobs:
       uses: actions/checkout@v4
         
     - name: ✅ Verify Environment
+      shell: pwsh
       run: |
-        echo "✅ Verifying self-hosted environment..."
+        Write-Host "✅ Verifying self-hosted environment..."
         oc version --client
-        try { oc whoami --show-server } catch { echo "⚠️ Not logged into OpenShift" }
+        try { oc whoami --show-server } catch { Write-Host "⚠️ Not logged into OpenShift" }
       
     - name: 🔐 OpenShift Login Check
+      shell: pwsh
       run: |
-        echo "🔐 Checking OpenShift connection..."
-        echo "Checking OpenShift CLI availability..."
-        try { 
-          $user = oc whoami
-          echo "Current user: $user"
-        } catch { 
-          echo "User: Not logged in" 
+        Write-Host "🔐 Checking OpenShift connection..."
+        try {
+          oc version --client
+          Write-Host "✅ OpenShift CLI found"
+        } catch {
+          Write-Host "❌ OpenShift CLI not found - skipping OpenShift operations"
+          exit 0
         }
-        try { 
-          $server = oc whoami --show-server
-          echo "Current server: $server"
-        } catch { 
-          echo "Server: Not connected" 
-        }
-        try { 
-          $namespace = oc project --short
-          echo "Current namespace: $namespace"
-        } catch { 
-          echo "Namespace: Not set" 
+        
+        try {
+          $user = oc whoami 2>$null
+          if ($user) {
+            Write-Host "✅ Logged in as: $user"
+          } else {
+            Write-Host "⚠️ Not logged into OpenShift"
+          }
+        } catch {
+          Write-Host "⚠️ Not logged into OpenShift"
         }
         
     - name: 🏗️ Trigger Build
+      shell: pwsh
       run: |
-        echo "🏗️ Starting OpenShift build..."
-        echo "Project: ${{ env.PROJECT_NAME }}"
-        echo "Namespace: ${{ env.NAMESPACE }}"
+        Write-Host "🏗️ Starting OpenShift build..."
+        Write-Host "Project: '${{ env.PROJECT_NAME }}'"
+        Write-Host "Namespace: '${{ env.NAMESPACE }}'"
         
-        # Verificar se o namespace existe
-        try { oc get namespace ${{ env.NAMESPACE }} } catch { echo "⚠️ Namespace may not exist" }
+        try { oc get namespace '${{ env.NAMESPACE }}' } catch { Write-Host "⚠️ Namespace may not exist" }
+        try { oc get buildconfig '${{ env.PROJECT_NAME }}' -n '${{ env.NAMESPACE }}' } catch { Write-Host "⚠️ BuildConfig may not exist" }
         
-        # Verificar se o BuildConfig existe
-        try { oc get buildconfig ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} } catch { echo "⚠️ BuildConfig may not exist" }
-        
-        # Iniciar o build
-        oc start-build ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} --follow --wait
+        oc start-build '${{ env.PROJECT_NAME }}' -n '${{ env.NAMESPACE }}' --follow --wait
         
     - name: 📦 Get Latest Image
       id: image
+      shell: pwsh
       run: |
-        echo "📦 Getting latest image digest..."
-        $BUILD_NUMBER = oc get builds -n ${{ env.NAMESPACE }} --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}'
-        $BUILD_NUMBER = $BUILD_NUMBER | Select-String ${{ env.PROJECT_NAME }}
-        echo "Latest build: $BUILD_NUMBER"
-        echo "build_number=$BUILD_NUMBER" >> $env:GITHUB_OUTPUT
+        Write-Host "📦 Getting latest image digest..."
+        $BUILD_NUMBER = oc get builds -n '${{ env.NAMESPACE }}' --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}'
+        $BUILD_NUMBER = $BUILD_NUMBER | Select-String '${{ env.PROJECT_NAME }}'
+        Write-Host "Latest build: $BUILD_NUMBER"
+        "build_number=$BUILD_NUMBER" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         
     - name: ✅ Build Success Notification
       run: |
