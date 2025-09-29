@@ -22,13 +22,6 @@ spec:
     server: 'https://kubernetes.default.svc'  # ← Mesmo cluster
     namespace: philippenunes-dev
 
-  # Configuração para evitar problemas de discovery
-  ignoreDifferences:
-  - group: "*"
-    kind: "*"
-    managedFieldsManagers:
-    - kube-controller-manager
-
   syncPolicy:
     # ✅ AutoSync habilitado para desenvolvimento
     automated:

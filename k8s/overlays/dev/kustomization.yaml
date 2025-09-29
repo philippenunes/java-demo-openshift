@@ -15,7 +15,7 @@ nameSuffix: -dev
 images:
 - name: my-java-app
   newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
-  newTag: dev  # ← ArgoCD Image Updater atualizará ESTA linha automaticamente
+  # newTag será controlado pelo ArgoCD Image Updater via .argocd-source
 
 # Labels específicos para dev
 labels:
