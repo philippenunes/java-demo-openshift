@@ -24,7 +24,7 @@ jobs:
   # 🧪 TESTES E VALIDAÇÕES
   test:
     name: 🧪 Tests & Quality Gates
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
@@ -61,40 +61,25 @@ jobs:
   # 🏗️ BUILD NO OPENSHIFT (apenas no main)
   build:
     name: 🏗️ OpenShift Build
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
-      
-    - name: 🔧 Install OpenShift CLI
-      uses: redhat-actions/openshift-tools-installer@v1
-      with:
-        oc: 'latest'
         
-    - name: ✅ Verify CLI Installation
+    - name: ✅ Verify Environment
       run: |
-        echo "✅ Verifying OpenShift CLI installation..."
+        echo "✅ Verifying self-hosted environment..."
         oc version --client
-        kubectl version --client
+        oc whoami --show-server || echo "⚠️ Not logged into OpenShift"
       
-    - name: 🔐 OpenShift Login
+    - name: 🔐 OpenShift Login Check
       run: |
-        echo "🔐 Logging into OpenShift..."
-        echo "Server: ${{ secrets.OPENSHIFT_SERVER }}"
-        echo "Using token authentication..."
-        
-        # Verificar conectividade
-        echo "🌐 Testing connectivity..."
-        curl -k --connect-timeout 10 ${{ secrets.OPENSHIFT_SERVER }}/healthz || echo "⚠️ Server may not be reachable"
-        
-        # Fazer login
-        oc login --token=${{ secrets.OPENSHIFT_TOKEN }} --server=${{ secrets.OPENSHIFT_SERVER }} --insecure-skip-tls-verify=true
-        
-        # Verificar login
-        echo "✅ Login successful, checking user..."
-        oc whoami
+        echo "🔐 Checking OpenShift connection..."
+        echo "Current user: $(oc whoami)"
+        echo "Current server: $(oc whoami --show-server)"
+        echo "Current namespace: $(oc project -q)"
         
     - name: 🏗️ Trigger Build
       run: |
@@ -128,7 +113,7 @@ jobs:
   # 📊 DEPLOYMENT STATUS
   status:
     name: 📊 Deployment Status
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     if: always()
     steps:
