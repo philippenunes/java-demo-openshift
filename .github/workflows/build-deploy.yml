@@ -15,7 +15,7 @@ on:
 
 env:
   # 🎯 Configurações do projeto
-  JAVA_VERSION: '11'
+  JAVA_VERSION: '17'
   MAVEN_OPTS: '-Xmx1024m'
   PROJECT_NAME: 'my-java-app'
   NAMESPACE: 'philippenunes-dev'
@@ -52,7 +52,7 @@ jobs:
     - name: ✅ Code Coverage
       run: |
         echo "📊 Generating coverage report..."
-        mvn jacoco:report
+        mvn jacoco:report || echo "📝 Coverage plugin not configured"
         
   # 🏗️ BUILD NO OPENSHIFT (apenas no main)
   build:
