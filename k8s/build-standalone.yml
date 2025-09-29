@@ -1,0 +1,61 @@
+# 🏗️ BUILD CONFIGURATION - SEPARADO DO GITOPS
+# Este arquivo cria os recursos de build mas NÃO é gerenciado pelo ArgoCD
+# O build é executado manualmente ou por CI/CD
+# O ArgoCD Image Updater detecta novas imagens e atualiza automaticamente o deploy
+
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: my-java-app
+  namespace: philippenunes-dev
+  labels:
+    app: my-java-app
+    component: build
+spec:
+  lookupPolicy:
+    local: false
+
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: my-java-app
+  namespace: philippenunes-dev
+  labels:
+    app: my-java-app
+    component: build
+spec:
+  # 🎯 ESTRATÉGIA: Source-to-Image (S2I)
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: 'java:openjdk-11-ubi8'
+      env:
+      - name: MAVEN_ARGS
+        value: clean package -DskipTests
+
+  # 📥 FONTE: GitHub Repository
+  source:
+    type: Git
+    git:
+      uri: 'https://github.com/philippenunes/java-demo-openshift'
+      ref: main
+    contextDir: .
+
+  # 📤 OUTPUT: Registry Interno com tag timestamped
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'my-java-app:${BUILD_NUMBER}-${SHORT_COMMIT}'
+
+  # 🔄 TRIGGERS: Manual via GitHub Actions
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
+
+  # ⚙️ CONFIGURAÇÕES
+  runPolicy: Serial
+  completionDeadlineSeconds: 1200

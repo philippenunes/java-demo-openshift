@@ -37,6 +37,7 @@ target/
 k8s/*secret*.yml
 k8s/*secret*.yaml
 **/secrets/
+.env
 
 ### Binários ArgoCD ###
 argocd-*

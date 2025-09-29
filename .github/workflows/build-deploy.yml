@@ -46,12 +46,12 @@ jobs:
       if: success() || failure()
       run: |
         echo "📊 Test Results Summary:"
-        if [ -f "target/surefire-reports/TEST-*.xml" ]; then
+        if (Test-Path "target/surefire-reports/TEST-*.xml") {
           echo "✅ Test reports generated successfully"
-          find target/surefire-reports -name "*.xml" -exec basename {} \;
-        else
+          Get-ChildItem "target/surefire-reports" -Filter "*.xml" | ForEach-Object { $_.Name }
+        } else {
           echo "📝 No test reports found, but tests may have run successfully"
-        fi
+        }
 
     - name: ✅ Code Coverage
       run: |
