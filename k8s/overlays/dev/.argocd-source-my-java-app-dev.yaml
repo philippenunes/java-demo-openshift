@@ -1,3 +1,3 @@
 kustomize:
   images:
-  - image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app@sha256:133efd7f987a52d48396810e49994214d2e17480455b71b448e47d483ec5be07
+  - image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app@sha256:54893d3dbd5994a081cd64643ad0027f4392260ddf71ffec7651c2402a413ce4
