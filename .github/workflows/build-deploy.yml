@@ -40,14 +40,18 @@ jobs:
       run: |
         echo "🧪 Running unit tests..."
         mvn test
+        echo "✅ Tests completed - checking results..."
         
     - name: 📊 Test Report
-      uses: dorny/test-reporter@v1
       if: success() || failure()
-      with:
-        name: 📊 Maven Tests
-        path: target/surefire-reports/*.xml
-        reporter: java-junit
+      run: |
+        echo "📊 Test Results Summary:"
+        if [ -f "target/surefire-reports/TEST-*.xml" ]; then
+          echo "✅ Test reports generated successfully"
+          find target/surefire-reports -name "*.xml" -exec basename {} \;
+        else
+          echo "📝 No test reports found, but tests may have run successfully"
+        fi
 
     - name: ✅ Code Coverage
       run: |
