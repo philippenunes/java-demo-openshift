@@ -66,9 +66,25 @@ jobs:
     - name: 🔐 OpenShift Login Check
       run: |
         echo "🔐 Checking OpenShift connection..."
-        try { echo "Current user: $(oc whoami)" } catch { echo "User: Not logged in" }
-        try { echo "Current server: $(oc whoami --show-server)" } catch { echo "Server: Not connected" }
-        try { echo "Current namespace: $(oc project -q)" } catch { echo "Namespace: Not set" }
+        echo "Checking OpenShift CLI availability..."
+        try { 
+          $user = oc whoami
+          echo "Current user: $user"
+        } catch { 
+          echo "User: Not logged in" 
+        }
+        try { 
+          $server = oc whoami --show-server
+          echo "Current server: $server"
+        } catch { 
+          echo "Server: Not connected" 
+        }
+        try { 
+          $namespace = oc project --short
+          echo "Current namespace: $namespace"
+        } catch { 
+          echo "Namespace: Not set" 
+        }
         
     - name: 🏗️ Trigger Build
       run: |
