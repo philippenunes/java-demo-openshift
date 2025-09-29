@@ -1,5 +1,20 @@
 # 🚀 GITHUB ACTIONS - PIPELINE CI/CD COMPLETO
-# Este workflow executa testes, build e deploy automático via GitOps
+# Este workflow executa testes,    - name: 🔐 OpenShift Login
+      run: |
+        echo "🔐 Logging into OpenShift..."
+        echo "Server: ${{ secrets.OPENSHIFT_SERVER }}"
+        echo "Using token authentication..."
+        
+        # Verificar conectividade
+        echo "🌐 Testing connectivity..."
+        curl -k --connect-timeout 10 ${{ secrets.OPENSHIFT_SERVER }}/healthz || echo "⚠️ Server may not be reachable"
+        
+        # Fazer login
+        oc login --token=${{ secrets.OPENSHIFT_TOKEN }} --server=${{ secrets.OPENSHIFT_SERVER }} --insecure-skip-tls-verify=true
+        
+        # Verificar login
+        echo "✅ Login successful, checking user..."
+        oc whoami e deploy automático via GitOps
 
 name: 🏗️ Build and Deploy
 
@@ -68,14 +83,34 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: 🔐 OpenShift Login
+    - name: � Install OpenShift CLI
+      run: |
+        echo "🔧 Installing OpenShift CLI..."
+        curl -LO https://github.com/openshift/okd/releases/download/4.13.0-0.okd-2023-09-16-012030/openshift-client-linux-4.13.0-0.okd-2023-09-16-012030.tar.gz
+        tar -xzf openshift-client-linux-4.13.0-0.okd-2023-09-16-012030.tar.gz
+        sudo mv oc kubectl /usr/local/bin/
+        oc version --client
+      
+    - name: �🔐 OpenShift Login
       run: |
         echo "🔐 Logging into OpenShift..."
+        echo "Server: ${{ secrets.OPENSHIFT_SERVER }}"
+        echo "Using token authentication..."
         oc login --token=${{ secrets.OPENSHIFT_TOKEN }} --server=${{ secrets.OPENSHIFT_SERVER }} --insecure-skip-tls-verify=true
         
     - name: 🏗️ Trigger Build
       run: |
         echo "🏗️ Starting OpenShift build..."
+        echo "Project: ${{ env.PROJECT_NAME }}"
+        echo "Namespace: ${{ env.NAMESPACE }}"
+        
+        # Verificar se o namespace existe
+        oc get namespace ${{ env.NAMESPACE }} || echo "⚠️ Namespace may not exist"
+        
+        # Verificar se o BuildConfig existe
+        oc get buildconfig ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} || echo "⚠️ BuildConfig may not exist"
+        
+        # Iniciar o build
         oc start-build ${{ env.PROJECT_NAME }} -n ${{ env.NAMESPACE }} --follow --wait
         
     - name: 📦 Get Latest Image
