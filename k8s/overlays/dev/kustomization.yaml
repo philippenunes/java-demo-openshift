@@ -14,7 +14,7 @@ nameSuffix: -dev
 # 🎯 CONFIGURAÇÃO PARA ARGOCD IMAGE UPDATER
 images:
 - name: my-java-app
-  newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
+  newName: default-route-openshift-image-registry.apps-crc.testing/philippenunes-dev/my-java-app
   newTag: dev  # ← ArgoCD Image Updater atualizará ESTA linha automaticamente
 
 # Labels específicos para dev
