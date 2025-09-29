@@ -42,6 +42,8 @@ class IntegrationTest {
         ResponseEntity<String> response = restTemplate.getForEntity(
                 "http://localhost:" + port + "/", String.class);
         
-        assertThat(response.getBody()).isEqualTo("GitOps LIVE: Java 17 + GitHub Actions + ArgoCD + OpenShift! 🚀");
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo("GitOps LIVE: Java 17 + GitHub Actions + ArgoCD + OpenShift! 🚀 (v2)");
     }
 }
