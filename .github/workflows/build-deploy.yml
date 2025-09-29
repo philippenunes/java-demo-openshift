@@ -1,5 +1,12 @@
-# 🚀 GITHUB ACTIONS - PIPELINE CI/CD COMPLETO
-# Este workflow executa testes, build e deploy automático via GitOps
+# 🚀 GITHUB ACTIONS - PIPELINE CI/CD COMPLET    - name: ✅ Code Coverage
+      shell: powershell
+      run: |
+        Write-Host "\ud83d\udcca Generating coverage report..."
+        try {
+          mvn jacoco:report
+        } catch {
+          Write-Host "\ud83d\udccf Coverage plugin not configured"
+        }ste workflow executa testes, build e deploy automático via GitOps
 
 name: 🏗️ Build and Deploy
 
@@ -119,14 +126,18 @@ jobs:
     - name: 📊 Pipeline Summary
       shell: powershell
       run: |
-        "## 🚀 Pipeline Summary" >> $env:GITHUB_STEP_SUMMARY
-        "| Stage | Status |" >> $env:GITHUB_STEP_SUMMARY
-        "|-------|--------|" >> $env:GITHUB_STEP_SUMMARY
-        "| 🧪 Tests | $(( ${{ needs.test.result }} -eq 'success') ? '✅ Passed' : '❌ Failed') |" >> $env:GITHUB_STEP_SUMMARY
-        "| 🏗️ Build | $(( ${{ needs.build.result }} -eq 'success') ? '✅ Completed' : '❌ Failed') |" >> $env:GITHUB_STEP_SUMMARY
-        "| 🎯 GitOps | 🔄 ArgoCD Image Updater will handle deployment |" >> $env:GITHUB_STEP_SUMMARY
-        "" >> $env:GITHUB_STEP_SUMMARY
-        "### 🔄 Next Steps:" >> $env:GITHUB_STEP_SUMMARY
-        "1. ✅ ArgoCD Image Updater detects new image" >> $env:GITHUB_STEP_SUMMARY
-        "2. ✅ Automatic Git commit with new image digest" >> $env:GITHUB_STEP_SUMMARY
-        "3. ✅ ArgoCD deploys automatically" >> $env:GITHUB_STEP_SUMMARY
+        "## \ud83d\ude80 Pipeline Summary" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+        "| Stage | Status |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "|-------|--------|" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        
+        $testStatus = if ('${{ needs.test.result }}' -eq 'success') { '\u2705 Passed' } else { '\u274c Failed' }
+        $buildStatus = if ('${{ needs.build.result }}' -eq 'success') { '\u2705 Completed' } else { '\u274c Failed' }
+        
+        "| \ud83e\uddea Tests | $testStatus |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "| \ud83c\udfd7\ufe0f Build | $buildStatus |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "| \ud83c\udfaf GitOps | \ud83d\udd04 ArgoCD Image Updater will handle deployment |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "### \ud83d\udd04 Next Steps:" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "1. \u2705 ArgoCD Image Updater detects new image" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "2. \u2705 Automatic Git commit with new image digest" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "3. \u2705 ArgoCD deploys automatically" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
