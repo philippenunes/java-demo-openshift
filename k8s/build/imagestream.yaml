@@ -1,8 +1,8 @@
+# 📦 IMAGE STREAM PARA ARMAZENAR IMAGENS BUILD
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: my-java-app
-  namespace: philippenunes-dev
   labels:
     app: my-java-app
 spec:

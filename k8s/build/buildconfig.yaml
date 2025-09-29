@@ -1,11 +1,10 @@
+# 🏗️ BUILD RESOURCES - OPENSHIFT S2I
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
-  name: my-java-app-dev
-  namespace: philippenunes-dev
+  name: my-java-app
   labels:
     app: my-java-app
-    env: dev
 spec:
   source:
     type: Git
@@ -24,14 +23,14 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: my-java-app:dev
+      name: my-java-app:latest
   triggers:
     - type: GitHub
       github:
-        secret: my-java-app-dev-github-webhook
+        secret: my-java-app-github-webhook
     - type: Generic
       generic:
-        secret: my-java-app-dev-generic-webhook
+        secret: my-java-app-generic-webhook
     - type: ImageChange
       imageChange: {}
     - type: ConfigChange
