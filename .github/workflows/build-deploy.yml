@@ -9,6 +9,7 @@ on:
     paths:
       - 'src/**'
       - 'pom.xml'
+      - 'k8s/**'  # ← Incluindo mudanças em manifests
       - '.github/workflows/**'
   pull_request:
     branches: [ main ]
