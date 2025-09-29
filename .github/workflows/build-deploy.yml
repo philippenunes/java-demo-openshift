@@ -9,8 +9,8 @@ on:
     paths:
       - 'src/**'
       - 'pom.xml'
-      - 'k8s/**'  # ← Incluindo mudanças em manifests
       - '.github/workflows/**'
+      # k8s/** removido - mudanças em manifests GitOps não disparam builds
   pull_request:
     branches: [ main ]
 
@@ -25,6 +25,7 @@ jobs:
   test:
     name: 🧪 Tests & Quality Gates
     runs-on: self-hosted
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'automatic update') }}
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
