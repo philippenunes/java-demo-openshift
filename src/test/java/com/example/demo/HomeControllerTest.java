@@ -18,7 +18,7 @@ class HomeControllerTest {
     void testHomeEndpoint() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpected(content().string("🚀 GitHub Actions + GitOps: PIPELINE TESTANDO! ✨"));
+                .andExpect(content().string("🚀 GitHub Actions + GitOps: PIPELINE TESTANDO! ✨"));
     }
 
     @Test
