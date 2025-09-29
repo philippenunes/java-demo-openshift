@@ -32,7 +32,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: my-java-app:${BUILD_NUMBER}-${SHORT_COMMIT}
+      name: my-java-app:latest
   triggers:
     - type: ConfigChange
     - type: ImageChange
