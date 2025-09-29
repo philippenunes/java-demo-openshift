@@ -1,31 +1,24 @@
-apiVe  # 🎯 CONFIGURAÇÃO PARA ARGOCD IMAGE UPDATER - ESTRATÉGIA ALTERNATIVA
-  annotations:
-    # 🚀 DESABILITADO: Registry não é acessível do KIND cluster
-    # argocd-image-updater.argoproj.io/image-list: my-java-app=image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
-    # argocd-image-updater.argoproj.io/write-back-method: git
-    # argocd-image-updater.argoproj.io/git-branch: mainargoproj.io/v1alpha1
+apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: my-java-app-dev
-  namespace: argocd
-  # 🎯 CONFIGURAÇÃO PARA ARGOCD IMAGE UPDATER
+  namespace: openshift-gitops  # ← ArgoCD do OpenShift
+  # 🎯 CONFIGURAÇÃO PARA ARGOCD IMAGE UPDATER NATIVO
   annotations:
     argocd-image-updater.argoproj.io/image-list: my-java-app=image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
     argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/git-branch: main
-    # � STRATEGY: Usar polling pois não conseguimos acessar registry do CRC
-    argocd-image-updater.argoproj.io/my-java-app.update-strategy: digest
 spec:
   project: default
 
   source:
     repoURL: 'https://github.com/philippenunes/java-demo-openshift'
     targetRevision: main  
-    path: k8s/overlays/dev  # 🎯 Nova estrutura Kustomize
+    path: k8s/overlays/dev  # 🎯 Estrutura Kustomize
     kustomize: {}
 
   destination:
-    server: 'https://192.168.1.3:6443'
+    server: 'https://kubernetes.default.svc'  # ← Mesmo cluster
     namespace: philippenunes-dev
 
   # Configuração para evitar problemas de discovery

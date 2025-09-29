@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1beta1
+kind: ArgoCD
+metadata:
+  name: openshift-gitops
+  namespace: openshift-gitops
+spec:
+  # 🚀 CONFIGURAÇÃO PARA OPENSHIFT GITOPS NATIVO
+  server:
+    route:
+      enabled: true
+    service:
+      type: ''
+  
+  # 🔧 CONFIGURAÇÃO DO IMAGE UPDATER PARA REGISTRY INTERNO
+  extraConfig:
+    application.instanceLabelKey: argocd.argoproj.io/instance
+  
+  # 🛡️ RBAC PARA SYSTEM ADMINS
+  rbac:
+    defaultPolicy: ''
+    policy: |
+      g, system:cluster-admins, role:admin
+      g, cluster-admins, role:admin
+    scopes: '[groups]'
+  
+  # 🎯 INTEGRAÇÃO COM OPENSHIFT OAUTH
+  sso:
+    provider: dex
+    dex:
+      openShiftOAuth: true
+      
+  # ⚡ PERFORMANCE E RESOURCES
+  controller:
+    resources:
+      limits:
+        cpu: "2"
+        memory: "2Gi"
+      requests:
+        cpu: "250m"
+        memory: "1Gi"
+  
+  server:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+      requests:
+        cpu: "125m"
+        memory: "128Mi"
+  
+  repo:
+    resources:
+      limits:
+        cpu: "1"
+        memory: "1Gi"
+      requests:
+        cpu: "250m"
+        memory: "256Mi"
