@@ -44,6 +44,6 @@ class IntegrationTest {
         
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo("Java 17 + GitHub Actions + ArgoCD + OpenShift! 🚀🎯");
+        assertThat(response.getBody()).isEqualTo("Java 17 + GitHub Actions + ArgoCD + OpenShift!! 🚀🎯");
     }
 }
