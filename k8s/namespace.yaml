@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: philippenunes-dev
+  labels:
+    app: my-java-app
+    environment: dev
