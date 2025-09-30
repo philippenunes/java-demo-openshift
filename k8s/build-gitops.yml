@@ -30,7 +30,7 @@ spec:
       from:
         kind: ImageStreamTag
         namespace: openshift
-        name: 'java:openjdk-11-ubi8'
+        name: 'java:openjdk-17-ubi8'
       env:
       - name: MAVEN_ARGS
         value: clean package -DskipTests
@@ -47,7 +47,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: 'my-java-app:dev'
+      name: 'my-java-app:latest'
     # Adiciona tags com timestamp
     imageLabels:
     - name: "build.date"
