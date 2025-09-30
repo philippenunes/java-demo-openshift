@@ -55,8 +55,15 @@ spec:
     - name: "git.commit"
       value: "${BUILD_REVISION}"
 
-  # 🔄 TRIGGERS: Manual por enquanto
-  triggers: []
+  # 🔄 TRIGGERS
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
+    imageChange:
+      from:
+        kind: ImageStreamTag
+        name: java:openjdk-17-ubi8
+        namespace: openshift
 
   # ⚙️ CONFIGURAÇÕES
   runPolicy: Serial

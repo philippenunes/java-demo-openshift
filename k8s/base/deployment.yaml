@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: my-java-app
-          image: my-java-app  # ← Será customizado pelo Kustomize
+          image: my-java-app 
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
