@@ -4,22 +4,12 @@ metadata:
   name: my-java-app-dev
   namespace: openshift-gitops
   annotations:
-    # Lista de imagens a monitorar
-    argocd-image-updater.argoproj.io/image-list: my-java-app=image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
-    
-    # Estratégia: monitorar tag latest
-    argocd-image-updater.argoproj.io/my-java-app.update-strategy: latest
-    
-    # Permitir apenas tag latest
-    argocd-image-updater.argoproj.io/my-java-app.allow-tags: regexp:^latest$
-    
-    # Forçar atualização mesmo se tag não mudou (útil para latest)
-    argocd-image-updater.argoproj.io/my-java-app.force-update: "true"
-    
-    # Escrever mudanças no Git
+    argocd-image-updater.argoproj.io/image-list: my-java-app=image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app:latest
     argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/write-back-target: kustomization
     argocd-image-updater.argoproj.io/git-branch: main
+    argocd-image-updater.argoproj.io/my-java-app.update-strategy: digest
+    argocd-image-updater.argoproj.io/my-java-app.allow-tags: regexp:^latest$
+    argocd-image-updater.argoproj.io/write-back-target: kustomization
 spec:
   project: default
 
