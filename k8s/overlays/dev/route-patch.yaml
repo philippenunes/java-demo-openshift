@@ -1,7 +1,7 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: my-java-app-dev
+  name: my-java-app  
 spec:
   to:
     name: my-java-app-dev
