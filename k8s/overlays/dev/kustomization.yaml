@@ -24,4 +24,4 @@ labels:
     managed-by: argocd
 
 configurations:
-- ../../base/kustomizeconfig.yaml
+- kustomizeconfig.yaml
