@@ -9,9 +9,11 @@ namespace: philippenunes-dev
 nameSuffix: -dev
 # 🎯 CONFIGURAÇÃO PARA ARGOCD IMAGE UPDATER
 images:
-  - name: my-java-app
-    newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
-    digest: sha256:051c2d6ed7866f78c011c292b88b477cbf9c4e7a614ec9fbc6a9e3d204963641
+- name: my-java-app
+  newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
+  digest: sha256:051c2d6ed7866f78c011c292b88b477cbf9c4e7a614ec9fbc6a9e3d204963641
+- name: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
+  digest: sha256:c6a6cc81cca994cd8499d6adf3240c3c4045d05fec974ac92c97b6677de5751e
 # Labels específicos para dev
 labels:
 - pairs:
