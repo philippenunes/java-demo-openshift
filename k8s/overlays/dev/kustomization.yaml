@@ -23,5 +23,5 @@ labels:
     environment: dev
     managed-by: argocd
 
-configurations:
-- kustomizeconfig.yaml
+patchesStrategicMerge:
+- route-patch.yaml
