@@ -22,3 +22,6 @@ labels:
 - pairs:
     environment: dev
     managed-by: argocd
+
+configurations:
+- ../../base/kustomizeconfig.yaml
