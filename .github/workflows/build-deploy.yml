@@ -5,14 +5,13 @@ name: 🏗️ Build and Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
     paths:
       - 'src/**'
       - 'pom.xml'
       - '.github/workflows/**'
-      # k8s/** removido - mudanças em manifests GitOps não disparam builds
   pull_request:
-    branches: [ main ]
+    branches: [ develop ]
 
 env:
   JAVA_VERSION: '17'
@@ -59,7 +58,7 @@ jobs:
     name: 🏗️ OpenShift Build
     runs-on: self-hosted
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
