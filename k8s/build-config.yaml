@@ -33,7 +33,7 @@ spec:
     type: Git
     git:
       uri: 'https://github.com/philippenunes/java-demo-openshift'
-      ref: main
+      ref: develop
     contextDir: .
   output:
     to:
