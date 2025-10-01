@@ -5,9 +5,9 @@ resources:
 namespace: philippenunes-dev
 nameSuffix: -dev
 images:
-  - name: my-java-app
-    newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
-    digest: sha256:92e10f2dedce2882528fd68e39fce44d35ff362a810b4aecf68a82e72557d236
+- name: my-java-app
+  newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
+  digest: sha256:1dfbc982a896cc15f9434cc5c8ef9257cd0735eea4af33c43a531177cf657f36
 labels:
 - pairs:
     environment: dev
