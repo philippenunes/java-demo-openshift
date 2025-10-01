@@ -1,6 +1,4 @@
-# 🏗️ BUILD PARA GITOPS COM IMAGE UPDATER
-# Esta configuração gera imagens com tags que o ArgoCD Image Updater consegue detectar
-
+# 🏗️ Build para GitOps com Image Updater
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
@@ -8,7 +6,6 @@ metadata:
   namespace: philippenunes-dev
   labels:
     app: my-java-app
-    component: build
 spec:
   lookupPolicy:
     local: false
@@ -21,9 +18,7 @@ metadata:
   namespace: philippenunes-dev
   labels:
     app: my-java-app
-    component: build
 spec:
-  # 🎯 ESTRATÉGIA: Source-to-Image (S2I)
   strategy:
     type: Source
     sourceStrategy:
@@ -34,28 +29,16 @@ spec:
       env:
       - name: MAVEN_ARGS
         value: clean package -DskipTests
-
-  # 📥 FONTE: GitHub Repository
   source:
     type: Git
     git:
       uri: 'https://github.com/philippenunes/java-demo-openshift'
       ref: main
     contextDir: .
-
-  # 📤 OUTPUT: Múltiplas tags para diferentes estratégias
   output:
     to:
       kind: ImageStreamTag
       name: 'my-java-app:latest'
-    # Adiciona tags com timestamp
-    imageLabels:
-    - name: "build.date"
-      value: "${BUILD_DATE}"
-    - name: "git.commit"
-      value: "${BUILD_REVISION}"
-
-  # 🔄 TRIGGERS
   triggers:
   - type: ConfigChange
   - type: ImageChange
@@ -64,18 +47,5 @@ spec:
         kind: ImageStreamTag
         name: java:openjdk-17-ubi8
         namespace: openshift
-
-  # ⚙️ CONFIGURAÇÕES
   runPolicy: Serial
   completionDeadlineSeconds: 1200
-
-  # 📋 POST COMMIT HOOK para criar tag com timestamp
-  postCommit:
-    command: ["sh", "-c"]
-    args:
-    - |
-      echo "Build completed at $(date)"
-      # Cria uma tag única baseada no timestamp
-      BUILD_TAG="build-$(date +%Y%m%d%H%M%S)"
-      echo "Criando tag $BUILD_TAG para ImageStream"
-      oc tag philippenunes-dev/my-java-app:latest philippenunes-dev/my-java-app:$BUILD_TAG

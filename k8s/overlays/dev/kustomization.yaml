@@ -1,20 +1,17 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# Herda da configuração base
 resources:
 - ../../base
-# Namespace de destino
+
 namespace: philippenunes-dev
-# Sufixo para recursos de dev
 nameSuffix: -dev
-# 🎯 CONFIGURAÇÃO PARA ARGOCD IMAGE UPDATER
+
 images:
 - name: my-java-app
   newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
-# Labels específicos para dev
+  newTag: latest
+
 labels:
 - pairs:
     environment: dev
     managed-by: argocd
-patches:
-- path: route-patch.yaml
