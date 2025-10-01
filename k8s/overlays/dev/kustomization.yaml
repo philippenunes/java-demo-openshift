@@ -12,3 +12,6 @@ labels:
 - pairs:
     environment: dev
     managed-by: argocd
+patches:
+- path: route-patch.yaml
+
