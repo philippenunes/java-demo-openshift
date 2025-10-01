@@ -15,7 +15,7 @@ spec:
         app: my-java-app
     spec:
       containers:
-        - name: my-java-app
+        - name: my-java-app # <- será substituído pelo kustomize 
           image: my-java-app 
           ports:
             - containerPort: 8080

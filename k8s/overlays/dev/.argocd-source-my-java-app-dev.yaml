@@ -1,3 +1,0 @@
-kustomize:
-  images:
-  - image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app:latest@sha256:ed76b60c4acc208affd2ea6f1bd77b6e8ed7251300d4a511b6ae645250588df5
