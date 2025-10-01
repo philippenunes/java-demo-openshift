@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 class Home {
     @GetMapping("/")
     public String home() {
-        return "Java 17 + GitHub Actions + ArgoCD + OpenShift!!! 🚀🎯";
+        return "Java 17 + GitHub Actions + ArgoCD + OpenShift! 🚀🎯";
     }
 }
