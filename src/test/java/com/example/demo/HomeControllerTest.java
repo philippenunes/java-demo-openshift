@@ -18,7 +18,7 @@ class HomeControllerTest {
     void testHomeEndpoint() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Java 17 + GitHub Actions + ArgoCD + OpenShift! 🚀"));
+                .andExpect(content().string("Java 17 + GitHub Actions + ArgoCD + OpenShift! 🚀!!!"));
     }
 
     @Test
