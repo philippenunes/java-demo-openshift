@@ -13,6 +13,10 @@ jobs:
   promote:
     name: 🔄 Promote Digest
     runs-on: self-hosted
+
+    permissions:
+      contents: write
+
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -29,13 +33,7 @@ jobs:
       - name: 🔄 Copiar digest do dev para prod
         shell: pwsh
         run: |
-          # pega o digest do dev
-          $devDigest = (yq e '.images[0].digest' k8s/overlays/dev/kustomization.yaml).Trim()
-          
-          # exporta para variável de ambiente
-          $env:devDigest = $devDigest
-          
-          # aplica no prod usando strenv()
+          $env:devDigest = (yq e '.images[0].digest' k8s/overlays/dev/kustomization.yaml).Trim()
           yq e ".images[0].digest = strenv(devDigest)" -i k8s/overlays/prod/kustomization.yaml
 
       - name: 📦 Commit e push se alterado
@@ -46,7 +44,7 @@ jobs:
           git add k8s/overlays/prod/kustomization.yaml
           if (-not (git diff --cached --quiet)) {
             git commit -m "Promove digest para prod [ci skip]"
-            git push
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
           } else {
             Write-Host "Nenhuma alteração para promover."
           }
