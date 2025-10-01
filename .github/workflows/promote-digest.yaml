@@ -36,7 +36,26 @@ jobs:
           $env:devDigest = (yq e '.images[0].digest' k8s/overlays/dev/kustomization.yaml).Trim()
           yq e ".images[0].digest = strenv(devDigest)" -i k8s/overlays/prod/kustomization.yaml
 
-      - name: 📦 Commit e push se alterado
+
+      - name: 🔐 OpenShift Login
+        shell: pwsh
+        run: |
+          if (-not $env:OPENSHIFT_TOKEN -or -not $env:OPENSHIFT_SERVER) {
+            Write-Host "⚠️ OPENSHIFT_TOKEN or OPENSHIFT_SERVER not set. Skipping login."
+            exit 0
+          }
+          Write-Host "🔐 Logging into OpenShift..."
+          oc login --token=$env:OPENSHIFT_TOKEN --server=$env:OPENSHIFT_SERVER --insecure-skip-tls-verify
+          $user = oc whoami
+          Write-Host "✅ Logged in as $user"
+
+      - name: 🔄 Promover imagem do dev para prod
+        shell: pwsh
+        run: |
+          $digest = (yq e '.images[0].digest' k8s/overlays/dev/kustomization.yaml).Trim()
+          oc tag philippenunes-dev/my-java-app@$digest philippenunes-prod/my-java-app:prod
+
+      - name: �📦 Commit e push se alterado
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
