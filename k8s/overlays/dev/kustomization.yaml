@@ -7,11 +7,10 @@ nameSuffix: -dev
 images:
 - name: my-java-app
   newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
-  digest: sha256:7ca48b914e6b187d97584ef60fde47616ce854d713a7551cb9a17dfc25c1eb2a
+  digest: sha256:1bb980b13b23075ca5a6a3b7af21e8b519ff3b41dff65541c3fdaf4dbfcdfe84
 labels:
 - pairs:
     environment: dev
     managed-by: argocd
 patches:
 - path: route-patch.yaml
-
