@@ -10,6 +10,7 @@ metadata:
     argocd-image-updater.argoproj.io/my-java-app.update-strategy: digest
     argocd-image-updater.argoproj.io/my-java-app.allow-tags: regexp:^latest$
     argocd-image-updater.argoproj.io/write-back-target: kustomization
+
 spec:
   project: default
 

@@ -72,7 +72,10 @@ spec:
   # 📋 POST COMMIT HOOK para criar tag com timestamp
   postCommit:
     command: ["sh", "-c"]
-    args: 
+    args:
     - |
       echo "Build completed at $(date)"
-      # Tag com timestamp será criada automaticamente pelo OpenShift
+      # Cria uma tag única baseada no timestamp
+      BUILD_TAG="build-$(date +%Y%m%d%H%M%S)"
+      echo "Criando tag $BUILD_TAG para ImageStream"
+      oc tag philippenunes-dev/my-java-app:latest philippenunes-dev/my-java-app:$BUILD_TAG
