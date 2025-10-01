@@ -29,8 +29,8 @@ jobs:
       - name: 🔄 Copiar digest do dev para prod
         shell: pwsh
         run: |
-          $devDigest = yq e '.images[0].digest' k8s/overlays/dev/kustomization.yaml
-          yq e ".images[0].digest = '$devDigest'" -i k8s/overlays/prod/kustomization.yaml
+          $devDigest = (yq e '.images[0].digest' k8s/overlays/dev/kustomization.yaml).Trim()
+          yq e ".images[0].digest = \"$devDigest\"" -i k8s/overlays/prod/kustomization.yaml
 
       - name: 📦 Commit e push se alterado
         shell: pwsh
