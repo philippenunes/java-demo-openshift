@@ -7,7 +7,7 @@ nameSuffix: -dev
 images:
 - name: my-java-app
   newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
-  digest: sha256:b42d8275943a6d9d92eab7d0377222fb2a349bbaf3fc6cf5102ef46eb095997e
+  digest: sha256:56baf65187835d1b0b69a1b3518acf4ac13dd9e5a49aba47a1d30802945fa696
 labels:
 - pairs:
     environment: dev
