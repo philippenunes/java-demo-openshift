@@ -12,7 +12,7 @@ images:
 - name: my-java-app
   newName: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
 - name: image-registry.openshift-image-registry.svc:5000/philippenunes-dev/my-java-app
-  digest: sha256:f2e2a5d5efff0e17ed346aa321a90b4fe268af7b12092ebc02a91ff291e3898f
+  digest: sha256:103f4e63f9609ae1ea226f435f18ba750d763596abb777a4654f821884edcc58
 # Labels específicos para dev
 labels:
 - pairs:
