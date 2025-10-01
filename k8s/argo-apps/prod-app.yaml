@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-java-app-prod
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/philippenunes/java-demo-openshift'
+    targetRevision: main
+    path: k8s/overlays/prod
+    kustomize: {}
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: philippenunes-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
